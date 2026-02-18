@@ -6,11 +6,12 @@ export const metadata: Metadata = {
   description: "Halal meat batch registration system",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+// Define what props this layout component accepts
+interface LayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
       <body>

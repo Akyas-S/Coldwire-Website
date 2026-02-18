@@ -89,6 +89,16 @@ body {
   color: #16a34a;
 }
 
+.card-icon.orange {
+  background: #ffedd5; /* orange-100 */
+  color: #f97316; /* orange-500 */
+}
+
+.card-icon.purple {
+  background: #ede9fe; /* violet-100 */
+  color: #7c3aed; /* violet-600 */
+}
+
 /* ===== FORM FIELDS ===== */
 
 /* Two inputs side by side on desktop, stacked on mobile */

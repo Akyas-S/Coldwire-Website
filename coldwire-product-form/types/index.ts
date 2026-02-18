@@ -15,6 +15,8 @@ export interface BatchFormData {
   abattoirAddress: string;
   halalCertificateBase64: string; // File converted to base64 string
   halalCertificateFileName: string;
+  productImageBase64: string;
+  productImageFileName: string;
 }
 
 // The subcategory options that change based on which category is selected

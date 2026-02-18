@@ -30,30 +30,46 @@ export default function SuccessDialog({
 
   // Download the QR code as a PNG image
   function handleDownloadQR() {
+    // Step 1: Find the SVG element inside the div we attached the ref to
     const svg = qrRef.current?.querySelector("svg");
     if (!svg) return;
 
-    // Create a canvas, draw the SVG on it, then download as PNG
+    // Step 2: Create a 256x256 canvas to draw the QR code onto
     const canvas = document.createElement("canvas");
     canvas.width = 256;
     canvas.height = 256;
+
+    // Step 3: Get the drawing context (this is how we draw onto the canvas)
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const svgData = new XMLSerializer().serializeToString(svg);
+    // Step 4: Turn the SVG element into a plain XML string
+    const svgAsString = new XMLSerializer().serializeToString(svg);
+
+    // Step 5: Convert that string to base64 so we can use it as an image URL.
+    // Browsers can load a base64-encoded SVG as an image using a "data URL".
+    const svgAsBase64 = btoa(svgAsString);
+    const svgDataUrl = "data:image/svg+xml;base64," + svgAsBase64;
+
+    // Step 6: Create an Image, load the SVG into it, then draw it to the canvas
     const img = new Image();
-    img.onload = () => {
+
+    img.onload = function () {
+      // Fill a white background first (PNG is transparent by default)
       ctx.fillStyle = "white";
       ctx.fillRect(0, 0, 256, 256);
+
+      // Draw the QR code image onto the canvas
       ctx.drawImage(img, 0, 0, 256, 256);
 
-      // Trigger download
-      const link = document.createElement("a");
-      link.download = `coldwire-${batchId}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      // Step 7: Export the canvas as a PNG and trigger a file download
+      const downloadLink = document.createElement("a");
+      downloadLink.download = "coldwire-" + batchId + ".png";
+      downloadLink.href = canvas.toDataURL("image/png");
+      downloadLink.click();
     };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+
+    img.src = svgDataUrl;
   }
 
   return (

@@ -13,13 +13,14 @@ const BatchSchema = new Schema(
     dateReceived: { type: Date, required: true },
     serialNumberRange: { type: String, required: true },
     productIdRange: { type: String, required: true },
-    quantity: { type: Number, required: true, min: 0 },
+    quantity: { type: Number, required: true, min: 1 },
     unit: { type: String, required: true },
 
     // Abattoir Information
     abattoirName: { type: String, required: true },
     abattoirAddress: { type: String, required: true },
     halalCertificatePath: { type: String, default: "" },
+    productImagePath: { type: String, default: "" },
 
     // RFID (optional - not implemented yet)
     rfidTagId: { type: String, default: "" },
@@ -32,5 +33,7 @@ const BatchSchema = new Schema(
   }
 );
 
-// If the model already exists (hot reload), use it. Otherwise create it.
-export default mongoose.models.Batch || mongoose.model("Batch", BatchSchema);
+// When Next.js hot-reloads in development, this file runs again.
+// If the model was already registered, reuse it instead of registering it twice.
+export default (mongoose.models.Batch as mongoose.Model<mongoose.InferSchemaType<typeof BatchSchema>>) ||
+  mongoose.model("Batch", BatchSchema);

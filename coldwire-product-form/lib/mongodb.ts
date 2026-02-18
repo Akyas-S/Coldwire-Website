@@ -9,47 +9,22 @@ if (!MONGODB_URI) {
   );
 }
 
-// We cache the connection so we don't create a new one on every request
-// (this is important during development with hot reloading)
-/* eslint-disable no-var */
-declare global {
-  var mongooseCache: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
-  };
-}
-
-if (!global.mongooseCache) {
-  global.mongooseCache = { conn: null, promise: null };
-}
+// This variable tracks whether we are already connected to MongoDB.
+// It lives as long as the server is running, so we only connect once
+// even if many requests come in.
+let isConnected = false;
 
 async function dbConnect() {
-  // If we already have a connection, reuse it
-  if (global.mongooseCache.conn) {
-    return global.mongooseCache.conn;
+  // If we already connected before, don't connect again
+  if (isConnected) {
+    console.log("Reusing existing MongoDB connection");
+    return;
   }
 
-  // If there's no connection promise yet, create one
-  if (!global.mongooseCache.promise) {
-    global.mongooseCache.promise = mongoose
-      .connect(MONGODB_URI, {
-        bufferCommands: false,
-      })
-      .then((mongoose) => {
-        console.log("✅ Connected to MongoDB");
-        return mongoose;
-      });
-  }
-
-  // Wait for the connection and cache it
-  try {
-    global.mongooseCache.conn = await global.mongooseCache.promise;
-  } catch (e) {
-    global.mongooseCache.promise = null;
-    throw e;
-  }
-
-  return global.mongooseCache.conn;
+  // Connect for the first time
+  await mongoose.connect(MONGODB_URI, { bufferCommands: false });
+  isConnected = true;
+  console.log("Connected to MongoDB");
 }
 
 export default dbConnect;
