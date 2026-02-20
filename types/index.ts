@@ -1,6 +1,4 @@
-// This is what the form data looks like when the user fills it in
 export interface BatchFormData {
-  // Product Details
   productCategory: string;
   productSubcategory: string;
   dateOfSlaughter: string;
@@ -9,17 +7,17 @@ export interface BatchFormData {
   productIdRange: string;
   quantity: number;
   unit: string;
-
-  // Abattoir Information
-  abattoirName: string;
-  abattoirAddress: string;
-  halalCertificateBase64: string; // File converted to base64 string
-  halalCertificateFileName: string;
-  productImageBase64: string;
-  productImageFileName: string;
+  supplierEmail: string;
+  supplierPhone: string;
+  supplierName: string;
+  supplierAddress: string;
+  retailer: string;
+  truck: string;
 }
 
-// The subcategory options that change based on which category is selected
+// Maps each top-level product category to its available subcategories.
+// Used by ProductForm to dynamically populate the subcategory dropdown
+// whenever the user selects a category, and reset it when the category changes.
 export const subcategories: Record<string, string[]> = {
   Chicken: ["Breast", "Thigh", "Drumstick", "Wings", "Whole Chicken"],
   Beef: ["Ribeye", "Sirloin", "Ground Beef", "Tenderloin", "Brisket"],

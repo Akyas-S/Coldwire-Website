@@ -1,35 +1,28 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-
-// Generate a unique batch ID like "CW-20260215-74821"
-// We use today's date plus a random 5-digit number to make it unique.
+// Generates a unique batch ID in the format: CW-YYYYMMDD-XXXXX
+// The date prefix groups batches by day; the 5-digit random suffix (10000–99999)
+// reduces collision probability without needing a database sequence counter.
 function generateBatchId(): string {
-  // Build the date portion: YYYYMMDD
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() is 0-indexed
   const day = String(today.getDate()).padStart(2, "0");
   const dateStr = year + month + day;
-
-  // Random 5-digit number (10000 to 99999) so IDs don't collide
-  const randomPart = Math.floor(Math.random() * 90000) + 10000;
-
+  const randomPart = Math.floor(Math.random() * 90000) + 10000; // always 5 digits
   return "CW-" + dateStr + "-" + randomPart;
 }
 
-// Handle POST requests to /api/batches
 export async function POST(request: Request) {
   try {
-    // Step 1: Connect to MongoDB
     await dbConnect();
 
-    // Step 2: Get the form data from the request body
     const body = await request.json();
 
-    // Step 3: Basic validation - check each required field one by one
+    // Validate all required fields individually so the client receives a specific
+    // error message pointing to exactly which field is missing, rather than a
+    // generic "bad request".
     if (!body.productCategory) {
       return NextResponse.json(
         { success: false, message: "Missing required field: productCategory" },
@@ -91,45 +84,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 4: Generate a unique batch ID
     const batchId = generateBatchId();
 
-    // Step 5: Handle file upload if a certificate was provided
-    let halalCertificatePath = "";
-    if (body.halalCertificateBase64 && body.halalCertificateFileName) {
-      // The file comes as a base64 string like "data:application/pdf;base64,JVBERi..."
-      // We need to extract just the base64 data part
-      const base64Data = body.halalCertificateBase64.split(",")[1];
-      const buffer = Buffer.from(base64Data, "base64");
-
-      // Save the file to the uploads directory
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
-      await mkdir(uploadsDir, { recursive: true });
-
-      const fileName = `${batchId}-${body.halalCertificateFileName}`;
-      const filePath = path.join(uploadsDir, fileName);
-      await writeFile(filePath, buffer);
-
-      halalCertificatePath = `/uploads/${fileName}`;
-    }
-
-    // Handle file upload for Product Image
-    let productImagePath = "";
-    if (body.productImageBase64 && body.productImageFileName) {
-      const base64Data = body.productImageBase64.split(",")[1];
-      const buffer = Buffer.from(base64Data, "base64");
-
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
-      await mkdir(uploadsDir, { recursive: true });
-
-      const fileName = `${batchId}-img-${body.productImageFileName}`;
-      const filePath = path.join(uploadsDir, fileName);
-      await writeFile(filePath, buffer);
-
-      productImagePath = `/uploads/${fileName}`;
-    }
-
-    // Step 6: Build the QR code data (same format the frontend uses)
+    // Build the JSON string that will be encoded into the QR code.
+    // Only essential traceability fields are included to keep the QR payload small
+    // (larger payloads produce denser, harder-to-scan QR codes).
     const qrCodeData = JSON.stringify({
       batchId,
       product: `${body.productCategory} ${body.productSubcategory}`,
@@ -138,7 +97,8 @@ export async function POST(request: Request) {
       abattoir: body.abattoirName,
     });
 
-    // Step 7: Save to MongoDB
+    // Persist the batch document. Date strings from JSON are converted to Date objects
+    // here so MongoDB stores them as proper BSON dates rather than plain strings.
     const batch = await Batch.create({
       batchId,
       productCategory: body.productCategory,
@@ -151,12 +111,9 @@ export async function POST(request: Request) {
       unit: body.unit,
       abattoirName: body.abattoirName,
       abattoirAddress: body.abattoirAddress,
-      halalCertificatePath,
-      productImagePath,
       qrCodeData,
     });
 
-    // Step 8: Send back success response
     return NextResponse.json({
       success: true,
       batchId: batch.batchId,

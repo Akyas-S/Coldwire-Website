@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Get the MongoDB connection string from environment variables
 const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
@@ -9,19 +8,22 @@ if (!MONGODB_URI) {
   );
 }
 
-// This variable tracks whether we are already connected to MongoDB.
-// It lives as long as the server is running, so we only connect once
-// even if many requests come in.
+// Module-level flag to track whether a connection already exists.
+// In Next.js, each API route runs in a long-lived Node.js process (not a fresh
+// process per request), so we reuse the single connection instead of opening a
+// new one on every call. Without this guard every hot-reload or concurrent
+// request would spawn an extra connection and exhaust the MongoDB pool limit.
 let isConnected = false;
 
 async function dbConnect() {
-  // If we already connected before, don't connect again
   if (isConnected) {
     console.log("Reusing existing MongoDB connection");
     return;
   }
 
-  // Connect for the first time
+  // bufferCommands: false means Mongoose will throw immediately if a query is
+  // attempted before the connection is ready, rather than queuing it silently.
+  // This surfaces connection errors early instead of hanging indefinitely.
   await mongoose.connect(MONGODB_URI, { bufferCommands: false });
   isConnected = true;
   console.log("Connected to MongoDB");

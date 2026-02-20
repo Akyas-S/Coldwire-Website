@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BatchFormData, subcategories } from "@/types";
 import SuccessDialog from "@/components/SuccessDialog";
 
-// This is the initial empty state for all form fields
+// A blank form "snapshot" used for the initial state
 const emptyFormData: BatchFormData = {
   productCategory: "",
   productSubcategory: "",
@@ -14,94 +14,47 @@ const emptyFormData: BatchFormData = {
   productIdRange: "",
   quantity: 0,
   unit: "",
-  abattoirName: "",
-  abattoirAddress: "",
-  halalCertificateBase64: "",
-  halalCertificateFileName: "",
-  productImageBase64: "",
-  productImageFileName: "",
+  supplierEmail: "",
+  supplierPhone: "",
+  supplierName: "",
+  supplierAddress: "",
+  retailer: "",
+  truck: "",
 };
 
 export default function ProductForm() {
-  // ---- STATE ----
-  // formData holds all the values the user types in
   const [formData, setFormData] = useState<BatchFormData>(emptyFormData);
-
-  // errors holds error messages for each field (empty string = no error)
+  // errors is a plain key→message map. An empty string ("") means no error for that field.
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // tracks if we're currently submitting to the server
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // after a successful submit, we store the batch ID to show the success dialog
+  // null = form not yet submitted; a string value = submission succeeded, holds the new batchId.
   const [successBatchId, setSuccessBatchId] = useState<string | null>(null);
 
-  // ---- HANDLERS ----
-
-  // This function updates a single field in formData when the user types
+  //  clears the error for that field so red messages disappear.
   function handleChange(field: string, value: string | number) {
     setFormData({ ...formData, [field]: value });
-
-    // Clear the error for this field when the user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: "" });
     }
   }
 
-  // When the user picks a category, reset the subcategory since options change
+  // Separate handler for category changes: whenever the category changes we must also
+  // reset productSubcategory to "" so the subcategory dropdown doesn't show a value
+  // that belongs to the old category.
   function handleCategoryChange(category: string) {
     setFormData({
       ...formData,
       productCategory: category,
-      productSubcategory: "", // reset subcategory when category changes
+      productSubcategory: "",
     });
   }
 
-  // When the user selects a file, convert it to base64 so we can send it as JSON
-  function handleFileChange(
-    event: React.ChangeEvent<HTMLInputElement>,
-    fieldName: "halalCertificate" | "productImage",
-    allowedTypes: string[],
-    allowedLabel: string,
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors({ ...errors, [fieldName]: "File must be under 5MB" });
-      return;
-    }
-
-    // Check file type
-    if (!allowedTypes.includes(file.type)) {
-      setErrors({ ...errors, [fieldName]: `Only ${allowedLabel} files are allowed` });
-      return;
-    }
-
-    // Convert file to base64 string so we can send it in JSON
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData({
-        ...formData,
-        [`${fieldName}Base64`]: reader.result as string,
-        [`${fieldName}FileName`]: file.name,
-      });
-      setErrors({ ...errors, [fieldName]: "" });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // ---- VALIDATION ----
-
-  // Check all fields before submitting. Returns true if everything is valid.
+  // Client-side validation runs before the API call to give instant feedback
+  // without a network round-trip. The API also validates, so this is a UX layer only.
   function validateForm(): boolean {
-    // We start by assuming the form is valid.
-    // If any field fails a check, we set this to false.
     let formIsValid = true;
     const newErrors: Record<string, string> = {};
 
-    // Check required text fields
     if (!formData.productCategory) {
       newErrors.productCategory = "Please select a category";
       formIsValid = false;
@@ -130,51 +83,56 @@ export default function ProductForm() {
       newErrors.unit = "Please select a unit";
       formIsValid = false;
     }
-    if (!formData.abattoirName) {
-      newErrors.abattoirName = "Please enter abattoir name";
+    if (!formData.supplierName) {
+      newErrors.supplierName = "Please enter supplier name";
       formIsValid = false;
     }
-    if (!formData.abattoirAddress) {
-      newErrors.abattoirAddress = "Please enter abattoir address";
+    if (!formData.supplierAddress) {
+      newErrors.supplierAddress = "Please enter supplier address";
       formIsValid = false;
     }
-
-    // Check quantity is a positive number
+    if (!formData.supplierEmail) {
+      newErrors.supplierEmail = "Please enter supplier email";
+      formIsValid = false;
+    } else if (!formData.supplierEmail.includes("@")) {
+      newErrors.supplierEmail = "Please enter a valid email address";
+      formIsValid = false;
+    }
+    if (!formData.supplierPhone) {
+      newErrors.supplierPhone = "Please enter supplier phone number";
+      formIsValid = false;
+    }
+    if (!formData.retailer) {
+      newErrors.retailer = "Please enter retailer name";
+      formIsValid = false;
+    }
+    if (!formData.truck) {
+      newErrors.truck = "Please select a truck";
+      formIsValid = false;
+    }
     if (!formData.quantity || formData.quantity <= 0) {
       newErrors.quantity = "Quantity must be greater than 0";
       formIsValid = false;
     }
-
-    // Check that slaughter date is before or equal to received date
+    // Cross-field date rule: an animal cannot be received before it was slaughtered.
+    // Only runs when both dates are present to avoid a confusing error while the user
+    // is still filling out the form.
     if (formData.dateOfSlaughter && formData.dateReceived) {
       if (new Date(formData.dateOfSlaughter) > new Date(formData.dateReceived)) {
         newErrors.dateReceived = "Received date must be after slaughter date";
         formIsValid = false;
       }
     }
-
-    // Check file was uploaded
-    if (!formData.halalCertificateBase64) {
-      newErrors.halalCertificate = "Please upload a halal certificate";
-      formIsValid = false;
-    }
-
     setErrors(newErrors);
-
-    // Return true only if every field passed its check
     return formIsValid;
   }
 
-  // ---- SUBMIT ----
-
   async function handleSubmit() {
-    // Don't submit if validation fails
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Send the form data to our API endpoint
       const response = await fetch("/api/batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,72 +142,95 @@ export default function ProductForm() {
       const result = await response.json();
 
       if (result.success) {
-        // Show the success dialog with the generated batch ID
+        // Store the returned batchId to trigger SuccessDialog rendering.
         setSuccessBatchId(result.batchId);
       } else {
-        // Show error from server
         setErrors({ submit: result.message || "Something went wrong. Please try again." });
       }
     } catch {
+      // Network-level failure (e.g. server unreachable).
       setErrors({ submit: "Could not connect to server. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // Reset the form to create another batch
+  // Resets the entire form back to blank state so the user can register another batch.
+  // Also clears successBatchId which unmounts the SuccessDialog.
   function handleReset() {
     setFormData(emptyFormData);
     setErrors({});
     setSuccessBatchId(null);
   }
 
-  // Get the subcategory options based on selected category
+  // Derive subcategory options from the selected category on every render.
+  // Falls back to [] when no category is selected so the disabled dropdown shows nothing.
   const currentSubcategories = formData.productCategory
     ? subcategories[formData.productCategory] || []
     : [];
 
-  // ---- RENDER ----
-
   return (
     <div>
-      {/* ===== SUPPLIER SECTION ===== */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon green">🏭</span>
           Supplier section
         </h2>
         <div className="form-group">
-          <label htmlFor="abattoirName">Abattoir Name</label>
+          <label htmlFor="supplierName">Supplier Name</label>
           <input
-            id="abattoirName"
-            placeholder="Enter abattoir name"
-            value={formData.abattoirName}
-            onChange={(e) => handleChange("abattoirName", e.target.value)}
+            id="supplierName"
+            placeholder="Enter supplier name"
+            value={formData.supplierName}
+            onChange={(e) => handleChange("supplierName", e.target.value)}
           />
-          {errors.abattoirName && <p className="error-text">{errors.abattoirName}</p>}
+          {errors.supplierName && <p className="error-text">{errors.supplierName}</p>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="abattoirAddress">Abattoir Address</label>
+          <label htmlFor="supplierAddress">Supplier Address</label>
           <textarea
-            id="abattoirAddress"
+            id="supplierAddress"
             placeholder="Enter full address"
-            value={formData.abattoirAddress}
-            onChange={(e) => handleChange("abattoirAddress", e.target.value)}
+            value={formData.supplierAddress}
+            onChange={(e) => handleChange("supplierAddress", e.target.value)}
           />
-          {errors.abattoirAddress && <p className="error-text">{errors.abattoirAddress}</p>}
+          {errors.supplierAddress && <p className="error-text">{errors.supplierAddress}</p>}
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="supplierEmail">Supplier Email</label>
+            <input
+              id="supplierEmail"
+              type="email"
+              placeholder="Enter supplier email"
+              value={formData.supplierEmail}
+              onChange={(e) => handleChange("supplierEmail", e.target.value)}
+            />
+            {errors.supplierEmail && <p className="error-text">{errors.supplierEmail}</p>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="supplierPhone">Supplier Phone Number</label>
+            <input
+              id="supplierPhone"
+              type="tel"
+              placeholder="Enter supplier phone number"
+              value={formData.supplierPhone}
+              onChange={(e) => handleChange("supplierPhone", e.target.value)}
+            />
+            {errors.supplierPhone && <p className="error-text">{errors.supplierPhone}</p>}
+          </div>
         </div>
       </div>
 
-      {/* ===== PRODUCT DETAILS SECTION ===== */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon blue">📦</span>
           Batch details section
         </h2>
 
-        {/* Row 1: Category and Subcategory */}
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="productCategory">Product Category</label>
@@ -268,6 +249,8 @@ export default function ProductForm() {
 
           <div className="form-group">
             <label htmlFor="productSubcategory">Subcategory</label>
+            {/* Disabled until a category is chosen — prevents selecting a subcategory
+                that doesn't belong to any category yet. */}
             <select
               id="productSubcategory"
               value={formData.productSubcategory}
@@ -283,10 +266,11 @@ export default function ProductForm() {
           </div>
         </div>
 
-        {/* Row 2: Quantity and Unit */}
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="quantity">Quantity</label>
+            {/* Controlled number input: `|| ""` prevents React displaying "0"
+                when the field is empty — shows a blank placeholder instead. */}
             <input
               id="quantity"
               type="number"
@@ -313,53 +297,25 @@ export default function ProductForm() {
           </div>
         </div>
 
-        {/* Row 3: Attachments */}
         <div className="form-row">
           <div className="form-group">
             <label>Halal Certificate</label>
-            <div className="file-upload-area">
-              <label htmlFor="halalCertificate" className="file-upload-label">
-                📎 Choose File
-              </label>
-              <input
-                id="halalCertificate"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange(e, "halalCertificate", ["application/pdf", "image/jpeg", "image/png"], "PDF, JPG, or PNG")}
-                className="hidden-input"
-              />
-              {formData.halalCertificateFileName && (
-                <span className="file-name-badge">{formData.halalCertificateFileName}</span>
-              )}
-            </div>
-            <p className="file-hint">PDF, JPG, or PNG. Max 5MB.</p>
-            {errors.halalCertificate && <p className="error-text">{errors.halalCertificate}</p>}
+            <button className="btn btn-outline" disabled>
+              📎 Upload Halal Certificate
+              <span className="badge badge-gray">Coming Soon</span>
+            </button>
           </div>
 
           <div className="form-group">
             <label>Product Image</label>
-            <div className="file-upload-area">
-              <label htmlFor="productImage" className="file-upload-label">
-                🖼️ Choose Image
-              </label>
-              <input
-                id="productImage"
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                onChange={(e) => handleFileChange(e, "productImage", ["image/jpeg", "image/png"], "JPG or PNG")}
-                className="hidden-input"
-              />
-              {formData.productImageFileName && (
-                <span className="file-name-badge">{formData.productImageFileName}</span>
-              )}
-            </div>
-            <p className="file-hint">JPG or PNG. Max 5MB.</p>
-            {errors.productImage && <p className="error-text">{errors.productImage}</p>}
+            <button className="btn btn-outline" disabled>
+              🖼️ Upload Product Image
+              <span className="badge badge-gray">Coming Soon</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ===== DELIVERY DETAILS SECTION ===== */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon orange">🚚</span>
@@ -400,9 +356,36 @@ export default function ProductForm() {
             {errors.productIdRange && <p className="error-text">{errors.productIdRange}</p>}
           </div>
         </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="retailer">Retailer</label>
+            <input
+              id="retailer"
+              placeholder="Enter retailer name"
+              value={formData.retailer}
+              onChange={(e) => handleChange("retailer", e.target.value)}
+            />
+            {errors.retailer && <p className="error-text">{errors.retailer}</p>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="truck">Truck</label>
+            <select
+              id="truck"
+              value={formData.truck}
+              onChange={(e) => handleChange("truck", e.target.value)}
+            >
+              <option value="">Select truck...</option>
+              <option value="Truck 1">Truck 1</option>
+              <option value="Truck 2">Truck 2</option>
+              <option value="Truck 3">Truck 3</option>
+            </select>
+            {errors.truck && <p className="error-text">{errors.truck}</p>}
+          </div>
+        </div>
       </div>
 
-      {/* ===== PRODUCTION AND DISTRIBUTION SECTION ===== */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon purple">🏷️</span>
@@ -421,6 +404,8 @@ export default function ProductForm() {
         </div>
 
         <div className="rfid-section">
+          {/* RFID registration is a planned feature. The button is disabled and
+              labelled "Coming Soon" to signal intent without any active functionality. */}
           <button className="btn btn-outline" disabled>
             📡 Register RFID Tag
             <span className="badge badge-gray">Coming Soon</span>
@@ -428,7 +413,8 @@ export default function ProductForm() {
         </div>
       </div>
 
-      {/* ===== SUBMIT BUTTON ===== */}
+      {/* Top-level submit error (e.g. network failure or server rejection) displayed
+          outside any card so it is visible regardless of scroll position. */}
       {errors.submit && (
         <div className="error-box">{errors.submit}</div>
       )}
@@ -438,6 +424,8 @@ export default function ProductForm() {
         onClick={handleSubmit}
         disabled={isSubmitting}
       >
+        {/* Show a spinner + label while the POST is in-flight to prevent double-submission
+            and give the user immediate visual feedback. */}
         {isSubmitting ? (
           <>
             <span className="spinner"></span>
@@ -448,7 +436,8 @@ export default function ProductForm() {
         )}
       </button>
 
-      {/* ===== SUCCESS DIALOG (shows after successful submit) ===== */}
+      {/* SuccessDialog is conditionally mounted only after a successful API response.
+          It receives the batchId for display and QR generation, and onClose to reset the form. */}
       {successBatchId && (
         <SuccessDialog
           batchId={successBatchId}

@@ -1,0 +1,72 @@
+.pageWrapper {
+  padding: 40px 48px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 32px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+.list {
+  max-width: 720px;
+}
+
+/* Each dropdown card */
+.dropdown {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background: white;
+  overflow: hidden;
+}
+
+/* The question button */
+.question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.question:hover {
+  background: #f9fafb;
+}
+
+/* The + / - symbol on the right */
+.icon {
+  font-size: 22px;
+  font-weight: 400;
+  color: #2563eb;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+/* The answer text that shows below the question */
+.answer {
+  padding: 0 24px 20px 24px;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.7;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}

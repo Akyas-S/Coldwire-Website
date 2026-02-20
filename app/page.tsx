@@ -1,20 +1,11 @@
-import ProductForm from "@/components/ProductForm";
+import TopBar from "@/components/TopBar";
 
-export default function Home() {
+export default function Dashboard() {
   return (
     <main>
-      {/* Header */}
-      <div className="page-header">
-        <div className="page-header-icon">C</div>
-        <div>
-          <h1>Coldwire</h1>
-          <p>New Product Batch</p>
-        </div>
-      </div>
-
-      {/* Form */}
+      <TopBar title="Dashboard" />
       <div className="page-content">
-        <ProductForm />
+        <p style={{ color: "#6b7280" }}>Welcome to the Coldwire dashboard.</p>
       </div>
     </main>
   );

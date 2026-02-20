@@ -1,0 +1,96 @@
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.collapsed {
+  width: 60px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px 16px 16px;
+}
+
+.logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.toggleButton:hover {
+  background: #f3f4f6;
+}
+
+.nav {
+  flex: 1;
+  padding: 0 8px;
+  overflow-y: auto;
+}
+
+.section {
+  margin-bottom: 8px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  padding: 8px 8px 4px 8px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #374151;
+  font-size: 14px;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.navItem:hover {
+  background: #f3f4f6;
+}
+
+.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
