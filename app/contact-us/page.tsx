@@ -11,7 +11,7 @@ export default function ContactUsPage() {
   const [subject, setSubject]     = useState("");
   const [message, setMessage]     = useState("");
 
-  // Placeholder submit handler — currently logs to the console and shows an alert.
+ 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     console.log("Form submitted:", { firstName, lastName, email, subject, message });

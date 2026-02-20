@@ -1,0 +1,190 @@
+/* wrapper for the whole page content area */
+.pageWrapper {
+  padding: 16px 24px;
+}
+
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+
+.statNumber {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+
+.statLabel {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+}
+
+.mainGrid :global(.card) {
+  margin-bottom: 0;
+}
+
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+
+.th {
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+
+.td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+}
+
+
+.alertItem {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+
+.alertDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+
+.alertText {
+  font-size: 14px;
+  color: #111827;
+  width: 100%;
+}
+
+
+.alertTime {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+
+.productRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+
+.productName {
+  font-size: 14px;
+  color: #374151;
+  width: 65px;
+}
+
+
+.barTrack {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+
+.barFill {
+  height: 8px;
+  border-radius: 4px;
+}
+
+
+.productPercent {
+  font-size: 13px;
+  color: #6b7280;
+  width: 35px;
+}
+
+
+.deliveryGrid {
+  display: flex;
+  gap: 12px;
+}
+
+
+.deliveryStat {
+  flex: 1;
+  padding: 12px 8px;
+  background: #f9fafb;
+  border-radius: 8px;
+  text-align: center;
+}
+
+
+.deliveryNumber {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+
+.deliveryLabel {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* the embedded google map */
+.mapFrame {
+  width: 100%;
+  height: 200px;
+  border: none;
+  border-radius: 6px;
+}

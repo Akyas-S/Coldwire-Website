@@ -3,8 +3,8 @@ export interface BatchFormData {
   productSubcategory: string;
   dateOfSlaughter: string;
   dateReceived: string;
-  serialNumberRange: string;
-  productIdRange: string;
+  serialNumber: number;
+  productId: number;
   quantity: number;
   unit: string;
   supplierEmail: string;
@@ -15,8 +15,7 @@ export interface BatchFormData {
   truck: string;
 }
 
-// Maps each top-level product category to its available subcategories.
-// Used by ProductForm to dynamically populate the subcategory dropdown
+
 // whenever the user selects a category, and reset it when the category changes.
 export const subcategories: Record<string, string[]> = {
   Chicken: ["Breast", "Thigh", "Drumstick", "Wings", "Whole Chicken"],

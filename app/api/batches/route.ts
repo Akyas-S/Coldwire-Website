@@ -47,15 +47,15 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!body.serialNumberRange) {
+    if (!body.serialNumber) {
       return NextResponse.json(
-        { success: false, message: "Missing required field: serialNumberRange" },
+        { success: false, message: "Missing required field: serialNumber" },
         { status: 400 }
       );
     }
-    if (!body.productIdRange) {
+    if (!body.productId) {
       return NextResponse.json(
-        { success: false, message: "Missing required field: productIdRange" },
+        { success: false, message: "Missing required field: productId" },
         { status: 400 }
       );
     }
@@ -71,15 +71,15 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!body.abattoirName) {
+    if (!body.supplierName) {
       return NextResponse.json(
-        { success: false, message: "Missing required field: abattoirName" },
+        { success: false, message: "Missing required field: supplierName" },
         { status: 400 }
       );
     }
-    if (!body.abattoirAddress) {
+    if (!body.supplierAddress) {
       return NextResponse.json(
-        { success: false, message: "Missing required field: abattoirAddress" },
+        { success: false, message: "Missing required field: supplierAddress" },
         { status: 400 }
       );
     }
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       product: `${body.productCategory} ${body.productSubcategory}`,
       quantity: `${body.quantity} ${body.unit}`,
       slaughterDate: body.dateOfSlaughter,
-      abattoir: body.abattoirName,
+      supplier: body.supplierName,
     });
 
     // Persist the batch document. Date strings from JSON are converted to Date objects
@@ -105,12 +105,16 @@ export async function POST(request: Request) {
       productSubcategory: body.productSubcategory,
       dateOfSlaughter: new Date(body.dateOfSlaughter),
       dateReceived: new Date(body.dateReceived),
-      serialNumberRange: body.serialNumberRange,
-      productIdRange: body.productIdRange,
+      serialNumber: body.serialNumber,
+      productId: body.productId,
       quantity: body.quantity,
       unit: body.unit,
-      abattoirName: body.abattoirName,
-      abattoirAddress: body.abattoirAddress,
+      supplierName: body.supplierName,
+      supplierAddress: body.supplierAddress,
+      supplierEmail: body.supplierEmail || "",
+      supplierPhone: body.supplierPhone || "",
+      retailer: body.retailer || "",
+      truck: body.truck || "",
       qrCodeData,
     });
 

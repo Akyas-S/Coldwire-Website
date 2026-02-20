@@ -10,8 +10,8 @@ const emptyFormData: BatchFormData = {
   productSubcategory: "",
   dateOfSlaughter: "",
   dateReceived: "",
-  serialNumberRange: "",
-  productIdRange: "",
+  serialNumber: 0,
+  productId: 0,
   quantity: 0,
   unit: "",
   supplierEmail: "",
@@ -71,12 +71,12 @@ export default function ProductForm() {
       newErrors.dateReceived = "Please enter date received";
       formIsValid = false;
     }
-    if (!formData.serialNumberRange) {
-      newErrors.serialNumberRange = "Please enter serial number range";
+    if (!formData.serialNumber || formData.serialNumber <= 0) {
+      newErrors.serialNumber = "Please enter a serial number";
       formIsValid = false;
     }
-    if (!formData.productIdRange) {
-      newErrors.productIdRange = "Please enter product ID range";
+    if (!formData.productId || formData.productId <= 0) {
+      newErrors.productId = "Please enter a product ID";
       formIsValid = false;
     }
     if (!formData.unit) {
@@ -299,6 +299,30 @@ export default function ProductForm() {
 
         <div className="form-row">
           <div className="form-group">
+            <label htmlFor="dateOfSlaughter">Date of Slaughter</label>
+            <input
+              id="dateOfSlaughter"
+              type="date"
+              value={formData.dateOfSlaughter}
+              onChange={(e) => handleChange("dateOfSlaughter", e.target.value)}
+            />
+            {errors.dateOfSlaughter && <p className="error-text">{errors.dateOfSlaughter}</p>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dateReceived">Date Received</label>
+            <input
+              id="dateReceived"
+              type="date"
+              value={formData.dateReceived}
+              onChange={(e) => handleChange("dateReceived", e.target.value)}
+            />
+            {errors.dateReceived && <p className="error-text">{errors.dateReceived}</p>}
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
             <label>Halal Certificate</label>
             <button className="btn btn-outline" disabled>
               📎 Upload Halal Certificate
@@ -322,38 +346,31 @@ export default function ProductForm() {
           Delivery Details
         </h2>
 
-        <div className="form-group">
-          <label htmlFor="dateReceived">Date Received</label>
-          <input
-            id="dateReceived"
-            type="date"
-            value={formData.dateReceived}
-            onChange={(e) => handleChange("dateReceived", e.target.value)}
-          />
-          {errors.dateReceived && <p className="error-text">{errors.dateReceived}</p>}
-        </div>
-
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="serialNumberRange">Serial Number Range</label>
+            <label htmlFor="serialNumber">Serial Number</label>
             <input
-              id="serialNumberRange"
-              placeholder="e.g. 001-100"
-              value={formData.serialNumberRange}
-              onChange={(e) => handleChange("serialNumberRange", e.target.value)}
+              id="serialNumber"
+              type="number"
+              min={1}
+              placeholder="Enter serial number"
+              value={formData.serialNumber || ""}
+              onChange={(e) => handleChange("serialNumber", Number(e.target.value))}
             />
-            {errors.serialNumberRange && <p className="error-text">{errors.serialNumberRange}</p>}
+            {errors.serialNumber && <p className="error-text">{errors.serialNumber}</p>}
           </div>
 
           <div className="form-group">
-            <label htmlFor="productIdRange">Product ID Range</label>
+            <label htmlFor="productId">Product ID</label>
             <input
-              id="productIdRange"
-              placeholder="e.g. PID-001 to PID-100"
-              value={formData.productIdRange}
-              onChange={(e) => handleChange("productIdRange", e.target.value)}
+              id="productId"
+              type="number"
+              min={1}
+              placeholder="Enter product ID"
+              value={formData.productId || ""}
+              onChange={(e) => handleChange("productId", Number(e.target.value))}
             />
-            {errors.productIdRange && <p className="error-text">{errors.productIdRange}</p>}
+            {errors.productId && <p className="error-text">{errors.productId}</p>}
           </div>
         </div>
 
@@ -383,24 +400,6 @@ export default function ProductForm() {
             </select>
             {errors.truck && <p className="error-text">{errors.truck}</p>}
           </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2 className="card-title">
-          <span className="card-icon purple">🏷️</span>
-          Production and distribution section
-        </h2>
-
-        <div className="form-group">
-          <label htmlFor="dateOfSlaughter">Date of Slaughter</label>
-          <input
-            id="dateOfSlaughter"
-            type="date"
-            value={formData.dateOfSlaughter}
-            onChange={(e) => handleChange("dateOfSlaughter", e.target.value)}
-          />
-          {errors.dateOfSlaughter && <p className="error-text">{errors.dateOfSlaughter}</p>}
         </div>
 
         <div className="rfid-section">
