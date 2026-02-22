@@ -57,7 +57,6 @@ export default function Dashboard() {
                     <th className={styles.th}>Batch ID</th>
                     <th className={styles.th}>Product</th>
                     <th className={styles.th}>Quantity</th>
-                    <th className={styles.th}>Abattoir</th>
                     <th className={styles.th}>Date Received</th>
                     <th className={styles.th}>Status</th>
                   </tr>
@@ -66,24 +65,21 @@ export default function Dashboard() {
                   <tr>
                     <td className={styles.td}>CW-20260220-45231</td>
                     <td className={styles.td}>Chicken — Breast</td>
-                    <td className={styles.td}>200 kg</td>
-                    <td className={styles.td}>Al-Barakah Abattoir</td>
+                    <td className={styles.td}>200</td>
                     <td className={styles.td}>2026-02-20</td>
                     <td className={styles.td}><span className="badge badge-blue">Delivered</span></td>
                   </tr>
                   <tr>
                     <td className={styles.td}>CW-20260220-33812</td>
                     <td className={styles.td}>Beef — Ribeye</td>
-                    <td className={styles.td}>150 kg</td>
-                    <td className={styles.td}>Halal Prime Sdn Bhd</td>
+                    <td className={styles.td}>150</td>
                     <td className={styles.td}>2026-02-20</td>
                     <td className={styles.td}><span className="badge badge-gray">In Transit</span></td>
                   </tr>
                   <tr>
                     <td className={styles.td}>CW-20260219-72041</td>
                     <td className={styles.td}>Lamb — Leg</td>
-                    <td className={styles.td}>80 kg</td>
-                    <td className={styles.td}>Greenfield Halal</td>
+                    <td className={styles.td}>80</td>
                     <td className={styles.td}>2026-02-19</td>
                     <td className={styles.td}><span className="badge badge-blue">Delivered</span></td>
                   </tr>

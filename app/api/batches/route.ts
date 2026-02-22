@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
+import Delivery from "@/models/Delivery";
+
 // Generates a unique batch ID in the format: CW-YYYYMMDD-XXXXX
-// The date prefix groups batches by day; the 5-digit random suffix (10000–99999)
-// reduces collision probability without needing a database sequence counter.
+// random 5 digits at the back
+
 function generateBatchId(): string {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() is 0-indexed
+  const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   const dateStr = year + month + day;
-  const randomPart = Math.floor(Math.random() * 90000) + 10000; // always 5 digits
+  const randomPart = Math.floor(Math.random() * 90000) + 10000;
   return "CW-" + dateStr + "-" + randomPart;
+}
+
+function generateDeliveryId(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  const dateStr = year + month + day;
+  const randomPart = Math.floor(Math.random() * 90000) + 10000;
+  return "DL-" + dateStr + "-" + randomPart;
 }
 
 export async function POST(request: Request) {
@@ -21,60 +33,50 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const requiredFields = [
-      "productCategory", "productSubcategory", "dateOfSlaughter", "dateReceived",
-      "serialNumber", "productId", "quantity", "unit", "supplierName", "supplierAddress",
+      "productCategory",
+      "productSubcategory",
+      "dateOfSlaughter",
+      "dateReceived",
+      "quantity",
     ];
+
     if (requiredFields.some((field) => !body[field])) {
       return NextResponse.json(
         { success: false, message: "Please fill in all required fields." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const batchId = generateBatchId();
-
-    // Build the JSON string that will be encoded into the QR code.
-    // Only essential traceability fields are included to keep the QR payload small
-    // (larger payloads produce denser, harder-to-scan QR codes).
-    const qrCodeData = JSON.stringify({
-      batchId,
-      product: `${body.productCategory} ${body.productSubcategory}`,
-      quantity: `${body.quantity} ${body.unit}`,
-      slaughterDate: body.dateOfSlaughter,
-      supplier: body.supplierName,
-    });
-
-    // Persist the batch document. Date strings from JSON are converted to Date objects
-    // here so MongoDB stores them as proper BSON dates rather than plain strings.
+    // Date strings from JSON are converted to Date objects here so MongoDB stores them as proper dates.
     const batch = await Batch.create({
       batchId,
       productCategory: body.productCategory,
       productSubcategory: body.productSubcategory,
       dateOfSlaughter: new Date(body.dateOfSlaughter),
       dateReceived: new Date(body.dateReceived),
-      serialNumber: body.serialNumber,
-      productId: body.productId,
       quantity: body.quantity,
-      unit: body.unit,
-      supplierName: body.supplierName,
-      supplierAddress: body.supplierAddress,
-      supplierEmail: body.supplierEmail || "",
-      supplierPhone: body.supplierPhone || "",
-      retailer: body.retailer || "",
-      truck: body.truck || "",
-      qrCodeData,
+    });
+
+    const deliveryId = generateDeliveryId();
+
+    await Delivery.create({
+      deliveryId,
+      batchId,
+      status: "pickup",
     });
 
     return NextResponse.json({
       success: true,
       batchId: batch.batchId,
+      deliveryId: deliveryId,
       message: "Batch created successfully",
     });
   } catch (error) {
     console.error("Error creating batch:", error);
     return NextResponse.json(
       { success: false, message: "Server error. Please try again." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -3,18 +3,8 @@ export interface BatchFormData {
   productSubcategory: string;
   dateOfSlaughter: string;
   dateReceived: string;
-  serialNumber: number;
-  productId: number;
   quantity: number;
-  unit: string;
-  supplierEmail: string;
-  supplierPhone: string;
-  supplierName: string;
-  supplierAddress: string;
-  retailer: string;
-  truck: string;
 }
-
 
 // whenever the user selects a category, and reset it when the category changes.
 export const subcategories: Record<string, string[]> = {

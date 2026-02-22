@@ -10,16 +10,7 @@ const emptyFormData: BatchFormData = {
   productSubcategory: "",
   dateOfSlaughter: "",
   dateReceived: "",
-  serialNumber: 0,
-  productId: 0,
   quantity: 0,
-  unit: "",
-  supplierEmail: "",
-  supplierPhone: "",
-  supplierName: "",
-  supplierAddress: "",
-  retailer: "",
-  truck: "",
 };
 
 export default function ProductForm() {
@@ -61,7 +52,9 @@ export default function ProductForm() {
         // Store the returned batchId to trigger SuccessDialog rendering.
         setSuccessBatchId(result.batchId);
       } else {
-        setSubmitError(result.message || "Something went wrong. Please try again.");
+        setSubmitError(
+          result.message || "Something went wrong. Please try again.",
+        );
       }
     } catch {
       // Network-level failure (e.g. server unreachable).
@@ -85,10 +78,12 @@ export default function ProductForm() {
     ? subcategories[formData.productCategory] || []
     : [];
 
-//-----HTML-----
+  //-----HTML-----
 
   return (
     <div>
+
+      {/* Supplier section — disabled for now, fields will be enabled in a future update */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon green">🏭</span>
@@ -99,8 +94,7 @@ export default function ProductForm() {
           <input
             id="supplierName"
             placeholder="Enter supplier name"
-            value={formData.supplierName}
-            onChange={(e) => handleChange("supplierName", e.target.value)}
+            disabled
           />
         </div>
 
@@ -109,8 +103,7 @@ export default function ProductForm() {
           <textarea
             id="supplierAddress"
             placeholder="Enter full address"
-            value={formData.supplierAddress}
-            onChange={(e) => handleChange("supplierAddress", e.target.value)}
+            disabled
           />
         </div>
 
@@ -121,8 +114,7 @@ export default function ProductForm() {
               id="supplierEmail"
               type="email"
               placeholder="Enter supplier email"
-              value={formData.supplierEmail}
-              onChange={(e) => handleChange("supplierEmail", e.target.value)}
+              disabled
             />
           </div>
 
@@ -132,8 +124,7 @@ export default function ProductForm() {
               id="supplierPhone"
               type="tel"
               placeholder="Enter supplier phone number"
-              value={formData.supplierPhone}
-              onChange={(e) => handleChange("supplierPhone", e.target.value)}
+              disabled
             />
           </div>
         </div>
@@ -167,44 +158,33 @@ export default function ProductForm() {
             <select
               id="productSubcategory"
               value={formData.productSubcategory}
-              onChange={(e) => handleChange("productSubcategory", e.target.value)}
+              onChange={(e) =>
+                handleChange("productSubcategory", e.target.value)
+              }
               disabled={!formData.productCategory}
             >
               <option value="">Select subcategory...</option>
               {currentSubcategories.map((sub) => (
-                <option key={sub} value={sub}>{sub}</option>
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="quantity">Quantity</label>
-            {/* Controlled number input: `|| ""` prevents React displaying "0"
-                when the field is empty — shows a blank placeholder instead. */}
-            <input
-              id="quantity"
-              type="number"
-              min={1}
-              placeholder="Enter quantity"
-              value={formData.quantity || ""}
-              onChange={(e) => handleChange("quantity", Number(e.target.value))}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="unit">Unit</label>
-            <select
-              id="unit"
-              value={formData.unit}
-              onChange={(e) => handleChange("unit", e.target.value)}
-            >
-              <option value="">Select unit...</option>
-              <option value="kg">kg</option>
-              <option value="pieces">pieces</option>
-            </select>
-          </div>
+        <div className="form-group">
+          <label htmlFor="quantity">Quantity</label>
+          {/* Controlled number input: `|| ""` prevents React displaying "0"
+              when the field is empty — shows a blank placeholder instead. */}
+          <input
+            id="quantity"
+            type="number"
+            min={1}
+            placeholder="Enter quantity"
+            value={formData.quantity || ""}
+            onChange={(e) => handleChange("quantity", Number(e.target.value))}
+          />
         </div>
 
         <div className="form-row">
@@ -248,6 +228,7 @@ export default function ProductForm() {
         </div>
       </div>
 
+      {/* Delivery Details — serial number and product ID disabled for now */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon orange">🚚</span>
@@ -260,10 +241,8 @@ export default function ProductForm() {
             <input
               id="serialNumber"
               type="number"
-              min={1}
               placeholder="Enter serial number"
-              value={formData.serialNumber || ""}
-              onChange={(e) => handleChange("serialNumber", Number(e.target.value))}
+              disabled
             />
           </div>
 
@@ -272,55 +251,16 @@ export default function ProductForm() {
             <input
               id="productId"
               type="number"
-              min={1}
               placeholder="Enter product ID"
-              value={formData.productId || ""}
-              onChange={(e) => handleChange("productId", Number(e.target.value))}
+              disabled
             />
           </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="retailer">Retailer</label>
-            <input
-              id="retailer"
-              placeholder="Enter retailer name"
-              value={formData.retailer}
-              onChange={(e) => handleChange("retailer", e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="truck">Truck</label>
-            <select
-              id="truck"
-              value={formData.truck}
-              onChange={(e) => handleChange("truck", e.target.value)}
-            >
-              <option value="">Select truck...</option>
-              <option value="Truck 1">Truck 1</option>
-              <option value="Truck 2">Truck 2</option>
-              <option value="Truck 3">Truck 3</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="rfid-section">
-          {/* RFID registration is a planned feature. The button is disabled and
-              labelled "Coming Soon" to signal intent without any active functionality. */}
-          <button className="btn btn-outline" disabled>
-            📡 Register RFID Tag
-            <span className="badge badge-gray">Coming Soon</span>
-          </button>
         </div>
       </div>
 
       {/* Top-level submit error (e.g. network failure or server rejection) displayed
           outside any card so it is visible regardless of scroll position. */}
-      {submitError && (
-        <div className="error-box">{submitError}</div>
-      )}
+      {submitError && <div className="error-box">{submitError}</div>}
 
       <button
         className="btn btn-primary"
