@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, message: "Missing required field: productSubcategory" },
         { status: 400 }
-      );
+      ); 
     }
     if (!body.dateOfSlaughter) {
       return NextResponse.json(
