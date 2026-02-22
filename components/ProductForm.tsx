@@ -85,6 +85,8 @@ export default function ProductForm() {
     ? subcategories[formData.productCategory] || []
     : [];
 
+//-----HTML-----
+
   return (
     <div>
       <div className="card">

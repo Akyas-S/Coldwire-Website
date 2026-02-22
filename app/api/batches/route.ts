@@ -20,66 +20,13 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    // Validate all required fields individually so the client receives a specific
-    // error message pointing to exactly which field is missing, rather than a
-    // generic "bad request".
-    if (!body.productCategory) {
+    const requiredFields = [
+      "productCategory", "productSubcategory", "dateOfSlaughter", "dateReceived",
+      "serialNumber", "productId", "quantity", "unit", "supplierName", "supplierAddress",
+    ];
+    if (requiredFields.some((field) => !body[field])) {
       return NextResponse.json(
-        { success: false, message: "Missing required field: productCategory" },
-        { status: 400 }
-      );
-    }
-    if (!body.productSubcategory) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: productSubcategory" },
-        { status: 400 }
-      ); 
-    }
-    if (!body.dateOfSlaughter) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: dateOfSlaughter" },
-        { status: 400 }
-      );
-    }
-    if (!body.dateReceived) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: dateReceived" },
-        { status: 400 }
-      );
-    }
-    if (!body.serialNumber) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: serialNumber" },
-        { status: 400 }
-      );
-    }
-    if (!body.productId) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: productId" },
-        { status: 400 }
-      );
-    }
-    if (!body.quantity) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: quantity" },
-        { status: 400 }
-      );
-    }
-    if (!body.unit) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: unit" },
-        { status: 400 }
-      );
-    }
-    if (!body.supplierName) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: supplierName" },
-        { status: 400 }
-      );
-    }
-    if (!body.supplierAddress) {
-      return NextResponse.json(
-        { success: false, message: "Missing required field: supplierAddress" },
+        { success: false, message: "Please fill in all required fields." },
         { status: 400 }
       );
     }
