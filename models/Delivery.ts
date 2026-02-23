@@ -5,6 +5,8 @@ const DeliverySchema = new Schema(
     deliveryId: { type: String, required: true, unique: true, index: true },
     batchId: { type: String, required: true, index: true },
     status: { type: String, required: true, default: "pickup" },
+    retailerId: { type: Schema.Types.ObjectId, required: true },
+    truckId: { type: Schema.Types.ObjectId, required: true },
   },
   {
     timestamps: true,

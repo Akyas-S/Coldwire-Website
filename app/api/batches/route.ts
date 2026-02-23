@@ -38,6 +38,8 @@ export async function POST(request: Request) {
       "dateOfSlaughter",
       "dateReceived",
       "quantity",
+      "retailerId",
+      "truckId",
     ];
 
     if (requiredFields.some((field) => !body[field])) {
@@ -63,7 +65,8 @@ export async function POST(request: Request) {
     await Delivery.create({
       deliveryId,
       batchId,
-      status: "pickup",
+      retailerId: body.retailerId,
+      truckId: body.truckId,
     });
 
     return NextResponse.json({

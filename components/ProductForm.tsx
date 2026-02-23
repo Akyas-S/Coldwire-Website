@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { BatchFormData, subcategories } from "@/types";
+import { useState, useEffect } from "react";
+import {
+  BatchFormData,
+  subcategories,
+  Supplier,
+  Retailer,
+  Truck,
+} from "@/types";
 import SuccessDialog from "@/components/SuccessDialog";
 
 // A blank form "snapshot" used for the initial state
@@ -19,6 +25,35 @@ export default function ProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // null = form not yet submitted; a string value = submission succeeded, holds the new batchId.
   const [successBatchId, setSuccessBatchId] = useState<string | null>(null);
+
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null,
+  );
+
+  const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(
+    null,
+  );
+
+  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
+
+  useEffect(() => {
+    fetch("/api/suppliers")
+      .then((res) => res.json())
+      .then((data) => setSuppliers(data.suppliers));
+
+    fetch("/api/retailers")
+      .then((res) => res.json())
+      .then((data) => setRetailers(data.retailers));
+
+    fetch("/api/trucks")
+      .then((res) => res.json())
+      .then((data) => setTrucks(data.trucks));
+  }, []);
+
+  console.log(suppliers);
 
   function handleChange(field: string, value: string | number) {
     setFormData({ ...formData, [field]: value });
@@ -43,7 +78,11 @@ export default function ProductForm() {
       const response = await fetch("/api/batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          retailerId: selectedRetailer?._id,
+          truckId: selectedTruck?._id,
+        }),
       });
 
       const result = await response.json();
@@ -81,9 +120,8 @@ export default function ProductForm() {
   //-----HTML-----
 
   return (
+    //------------Suppliers--------------
     <div>
-
-      {/* Supplier section — disabled for now, fields will be enabled in a future update */}
       <div className="card">
         <h2 className="card-title">
           <span className="card-icon green">🏭</span>
@@ -91,19 +129,33 @@ export default function ProductForm() {
         </h2>
         <div className="form-group">
           <label htmlFor="supplierName">Supplier Name</label>
-          <input
+          {/* drop selecter for supplier and logic */}
+          <select
             id="supplierName"
-            placeholder="Enter supplier name"
-            disabled
-          />
+            value={selectedSupplier?.SuppID || ""}
+            // setting selectedsupplier based on the use choice which will be used to auto fill the other options
+            onChange={(e) => {
+              const found = suppliers.find((s) => s.SuppID === e.target.value);
+              setSelectedSupplier(found || null);
+            }}
+          >
+            {/* Displaying the options */}
+            <option value="">Select supplier...</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier.SuppID} value={supplier.SuppID}>
+                {supplier.SuppName}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
           <label htmlFor="supplierAddress">Supplier Address</label>
           <textarea
             id="supplierAddress"
-            placeholder="Enter full address"
-            disabled
+            // sets the default value automatically using selected supplier
+            value={selectedSupplier?.SuppAddress || ""}
+            readOnly
           />
         </div>
 
@@ -113,8 +165,8 @@ export default function ProductForm() {
             <input
               id="supplierEmail"
               type="email"
-              placeholder="Enter supplier email"
-              disabled
+              value={selectedSupplier?.SuppEmail || ""}
+              readOnly
             />
           </div>
 
@@ -123,8 +175,8 @@ export default function ProductForm() {
             <input
               id="supplierPhone"
               type="tel"
-              placeholder="Enter supplier phone number"
-              disabled
+              value={selectedSupplier?.SuppTelephone || ""}
+              readOnly
             />
           </div>
         </div>
@@ -237,23 +289,41 @@ export default function ProductForm() {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="serialNumber">Serial Number</label>
-            <input
-              id="serialNumber"
-              type="number"
-              placeholder="Enter serial number"
-              disabled
-            />
+            <label htmlFor="retailer">Retailer</label>
+            <select
+              id="retailer"
+              value={selectedRetailer?._id || ""}
+              onChange={(e) => {
+                const found = retailers.find((r) => r._id === e.target.value);
+                setSelectedRetailer(found || null);
+              }}
+            >
+              <option value="">Select retailer...</option>
+              {retailers.map((retailer) => (
+                <option key={retailer._id} value={retailer._id}>
+                  {retailer.RetName}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="productId">Product ID</label>
-            <input
-              id="productId"
-              type="number"
-              placeholder="Enter product ID"
-              disabled
-            />
+            <label htmlFor="truck">Truck</label>
+            <select
+              id="truck"
+              value={selectedTruck?._id || ""}
+              onChange={(e) => {
+                const found = trucks.find((t) => t._id === e.target.value);
+                setSelectedTruck(found || null);
+              }}
+            >
+              <option value="">Select truck...</option>
+              {trucks.map((truck) => (
+                <option key={truck._id} value={truck._id}>
+                  {truck.TruckID}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
