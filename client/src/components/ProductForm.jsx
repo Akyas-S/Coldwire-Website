@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { subcategories } from "../constants/subcategories";
 import SuccessDialog from "./SuccessDialog";
+import { useAuth } from "../context/AuthContext";
 
 // A blank form "snapshot" used for the initial state
 const emptyFormData = {
@@ -12,6 +13,7 @@ const emptyFormData = {
 };
 
 export default function ProductForm() {
+  const { token } = useAuth();
   const [formData, setFormData] = useState(emptyFormData);
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,23 +26,24 @@ export default function ProductForm() {
   const [retailers, setRetailers] = useState([]);
   const [selectedRetailer, setSelectedRetailer] = useState(null);
 
-  const [trucks, setTrucks] = useState([]);
-  const [selectedTruck, setSelectedTruck] = useState(null);
+  const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState(null);
 
   useEffect(() => {
-    // Express returns arrays directly (no wrapper object)
-    fetch("/api/suppliers")
+    const headers = { Authorization: `Bearer ${token}` };
+
+    fetch("/api/suppliers", { headers })
       .then((res) => res.json())
       .then((data) => setSuppliers(Array.isArray(data) ? data : []));
 
-    fetch("/api/retailers")
+    fetch("/api/retailers", { headers })
       .then((res) => res.json())
       .then((data) => setRetailers(Array.isArray(data) ? data : []));
 
-    fetch("/api/trucks")
+    fetch("/api/users", { headers })
       .then((res) => res.json())
-      .then((data) => setTrucks(Array.isArray(data) ? data : []));
-  }, []);
+      .then((data) => setDrivers(Array.isArray(data) ? data.filter((u) => u.Role === "driver") : []));
+  }, [token]);
 
   function handleChange(field, value) {
     setFormData({ ...formData, [field]: value });
@@ -62,28 +65,46 @@ export default function ProductForm() {
     setSubmitError(null);
 
     try {
-      const response = await fetch("/api/batches", {
+      // Step 1: create the delivery first so we get a delivery ID to link the batch to
+      const deliveryRes = await fetch("/api/deliveries", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          ...formData,
-          retailerId: selectedRetailer?._id,
-          truckId: selectedTruck?._id,
+          DelUserID: selectedDriver?._id,
+          DelRetID: selectedRetailer?._id,
         }),
       });
 
-      const result = await response.json();
+      const delivery = await deliveryRes.json();
 
-      if (result.success) {
-        // Store the returned batchId to trigger SuccessDialog rendering.
-        setSuccessBatchId(result.batchId);
-      } else {
-        setSubmitError(
-          result.message || "Something went wrong. Please try again.",
-        );
+      if (!deliveryRes.ok) {
+        setSubmitError(delivery.message || "Failed to create delivery.");
+        return;
       }
+
+      // Step 2: create the batch and link it to the delivery using BDelID
+      const batchRes = await fetch("/api/batches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          BDelID: delivery._id,
+          Category: formData.productCategory,
+          Subcategory: formData.productSubcategory,
+          DateSlaughtered: formData.dateOfSlaughter,
+          DateReceived: formData.dateReceived,
+          Quantity: formData.quantity,
+        }),
+      });
+
+      const batch = await batchRes.json();
+
+      if (!batchRes.ok) {
+        setSubmitError(batch.message || "Failed to create batch.");
+        return;
+      }
+
+      setSuccessBatchId(batch.BatchID);
     } catch {
-      // Network-level failure (e.g. server unreachable).
       setSubmitError("Could not connect to server. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -295,19 +316,19 @@ export default function ProductForm() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="truck">Truck</label>
+            <label htmlFor="driver">Driver</label>
             <select
-              id="truck"
-              value={selectedTruck?._id || ""}
+              id="driver"
+              value={selectedDriver?._id || ""}
               onChange={(e) => {
-                const found = trucks.find((t) => t._id === e.target.value);
-                setSelectedTruck(found || null);
+                const found = drivers.find((d) => d._id === e.target.value);
+                setSelectedDriver(found || null);
               }}
             >
-              <option value="">Select truck...</option>
-              {trucks.map((truck) => (
-                <option key={truck._id} value={truck._id}>
-                  {truck.TruckID}
+              <option value="">Select driver...</option>
+              {drivers.map((driver) => (
+                <option key={driver._id} value={driver._id}>
+                  {driver.UserName}
                 </option>
               ))}
             </select>

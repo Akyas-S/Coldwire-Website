@@ -22,6 +22,7 @@ const getDeliveries = async (req, res) => {
       .populate('DelUserID', 'UserName')
       .populate('DelRetID', 'RetName')
       .populate('DelIMID', 'IMID')
+      .populate('DelBatchID', 'BatchID Category')
       .sort({ CreatedAt: -1 });
     res.json(deliveries);
   } catch (err) {

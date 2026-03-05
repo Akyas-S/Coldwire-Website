@@ -2,6 +2,7 @@ const Batch = require('../models/Batch');
 const Delivery = require('../models/Delivery');
 const RFIDTag = require('../models/RFIDTag');
 const generateId = require('../utils/generateId');
+const { createProductForBatch } = require('./productController');
 
 // POST /api/batches
 const createBatch = async (req, res) => {
@@ -19,6 +20,8 @@ const createBatch = async (req, res) => {
     }
 
     const batch = await Batch.create(data);
+
+    await createProductForBatch(batch._id);
 
     await Delivery.findByIdAndUpdate(
       batch.BDelID,
